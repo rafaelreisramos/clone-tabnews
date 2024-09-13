@@ -11,6 +11,7 @@ export default async function migrations(request, response) {
   }
 
   let dbClient;
+  console.log("resolve: ", resolve(__dirname, "infra", "migrations"));
   try {
     dbClient = await database.getNewClient();
     const defaultMigrationOptions = {
