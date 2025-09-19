@@ -54,35 +54,26 @@ describe("POST /api/v1/users", () => {
     });
 
     test("With duplicated 'email'", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "emailduplicado1",
-          email: "duplicated@email.com",
-          password: "senha123",
-        }),
+      await orchestrator.createUser({
+        email: "duplicated@email.com",
       });
-      expect(response1.status).toBe(201);
 
-      const response2 = await fetch("http://localhost:3000/api/v1/users", {
+      const response = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: "emailduplicado2",
+          username: "emailduplicado",
           email: "Duplicated@email.com",
           password: "senha123",
         }),
       });
-      expect(response2.status).toBe(400);
+      expect(response.status).toBe(400);
 
-      const response2Body = await response2.json();
+      const responseBody = await response.json();
 
-      expect(response2Body).toEqual({
+      expect(responseBody).toEqual({
         name: "ValidationError",
         message: "O email informado já está sendo utilizado.",
         action: "Utilize outro email para realizar esta operação.",
@@ -91,35 +82,26 @@ describe("POST /api/v1/users", () => {
     });
 
     test("With duplicated 'username'", async () => {
-      const response1 = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: "usernameduplicado",
-          email: "usernameduplicado1@email.com",
-          password: "senha123",
-        }),
+      await orchestrator.createUser({
+        username: "usernameduplicado",
       });
-      expect(response1.status).toBe(201);
 
-      const response2 = await fetch("http://localhost:3000/api/v1/users", {
+      const response = await fetch("http://localhost:3000/api/v1/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: "usernameDuplicado",
-          email: "usernameduplicado2@email.com",
+          email: "usernameduplicado@email.com",
           password: "senha123",
         }),
       });
-      expect(response2.status).toBe(400);
+      expect(response.status).toBe(400);
 
-      const response2Body = await response2.json();
+      const responseBody = await response.json();
 
-      expect(response2Body).toEqual({
+      expect(responseBody).toEqual({
         name: "ValidationError",
         message: "O username informado já está sendo utilizado.",
         action: "Utilize outro username para realizar esta operação.",
