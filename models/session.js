@@ -37,6 +37,38 @@ async function findOneValidByToken(token) {
   }
 }
 
+async function expireById(sessionId) {
+  const sessionFound = await runSelectQuery(sessionId);
+  return sessionFound;
+
+  async function runSelectQuery(sessionId) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          sessions
+        SET
+          expires_at = expires_at - interval '1 year',
+          updated_at = NOW()
+        WHERE
+          id = $1
+        RETURNING
+          *
+      ;`,
+      values: [sessionId],
+    });
+
+    if (results.rowCount === 0) {
+      throw new UnauthorizedError({
+        name: "UnauthorizedError",
+        message: "Usuário não possui sessão ativa.",
+        action: "Verifique se este usuário está logado e tente novamente.",
+      });
+    }
+
+    return results.rows[0];
+  }
+}
+
 async function create(userId) {
   const token = crypto.randomBytes(48).toString("hex");
   const expiresAt = new Date(Date.now() + EXPIRATION_IN_MILLISECONDS);
@@ -89,6 +121,7 @@ async function renew(sessionId) {
 
 const session = {
   findOneValidByToken,
+  expireById,
   create,
   renew,
   EXPIRATION_IN_MILLISECONDS,
