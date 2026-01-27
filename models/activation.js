@@ -29,11 +29,11 @@ async function create(userId) {
   }
 }
 
-async function findOneByUserId(userId) {
-  const userFound = await runSelectQuery(userId);
-  return userFound;
+async function findOneValidById(tokenId) {
+  const activationTokenObject = await runSelectQuery(tokenId);
+  return activationTokenObject;
 
-  async function runSelectQuery(userId) {
+  async function runSelectQuery(tokenId) {
     const results = await database.query({
       text: `
         SELECT
@@ -41,18 +41,20 @@ async function findOneByUserId(userId) {
         FROM
           user_activation_tokens
         WHERE
-          user_id = $1
+          id = $1
+          AND expires_at > NOW()
+          AND used_at IS NULL
         LIMIT
           1
       ;`,
-      values: [userId],
+      values: [tokenId],
     });
 
     if (results.rowCount === 0) {
       throw new NotFoundError({
-        name: "NotFoundError",
-        message: "O id informado não foi encontrado no sistema.",
-        action: "Verifique se o id está digitado corretamente.",
+        message:
+          "O token de ativação utilizado não foi encontrado no sistema ou expirou.",
+        action: "Faça um novo cadastro.",
       });
     }
 
@@ -76,7 +78,7 @@ Equipe FinTab`,
 
 const activation = {
   create,
-  findOneByUserId,
+  findOneValidById,
   sendEmailToUser,
 };
 
