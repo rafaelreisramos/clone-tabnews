@@ -1,25 +1,44 @@
 import { createRouter } from "next-connect";
-import controller from "infra/controller";
+import controller from "infra/controller.js";
 import migrator from "models/migrator.js";
+import authorization from "models/authorization.js";
 
 const router = createRouter();
 
-router.get(getHandler);
-router.post(postHandler);
+router.use(controller.injectAnonymousOrUser);
+router.get(controller.canRequest("read:migration"), getHandler);
+router.post(controller.canRequest("create:migration"), postHandler);
 
 export default router.handler(controller.errorHandlers);
 
 async function getHandler(request, response) {
+  const userTryingToGet = request.context.user;
+
   const pendingMigrations = await migrator.listPendingMigrations();
-  return response.status(200).send(pendingMigrations);
+
+  let secureOutputValues = authorization.filterOutput(
+    userTryingToGet,
+    "read:migration",
+    pendingMigrations,
+  );
+
+  return response.status(200).send(secureOutputValues);
 }
 
 async function postHandler(request, response) {
+  const userTryingToPost = request.context.user;
+
   const migratedMigrations = await migrator.runPendingMigrations();
 
+  let secureOutputValues = authorization.filterOutput(
+    userTryingToPost,
+    "read:migration",
+    migratedMigrations,
+  );
+
   if (migratedMigrations.length > 0) {
-    return response.status(201).send(migratedMigrations);
+    return response.status(201).send(secureOutputValues);
   }
 
-  return response.status(200).send(migratedMigrations);
+  return response.status(200).send(secureOutputValues);
 }
