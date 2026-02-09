@@ -58,14 +58,15 @@ export class ValidationError extends Error {
   }
 }
 
-export class UnauthorizedError extends Error {
+export class NotFoundError extends Error {
   constructor({ cause, message, action }) {
-    super(message || "Usuário não autenticado.", {
+    super(message || "Não foi possível encontrar este recurso no sistema.", {
       cause,
     });
-    this.name = "UnauthorizedError";
-    this.action = action || "Faça novamente o login para continuar.";
-    this.statusCode = 401;
+    this.name = "NotFoundError";
+    this.action =
+      action || "Verifique se os parâmetros enviados na consulta estão certos.";
+    this.statusCode = 404;
   }
 
   toJSON() {
@@ -99,15 +100,14 @@ export class ForbiddenError extends Error {
   }
 }
 
-export class NotFoundError extends Error {
+export class UnauthorizedError extends Error {
   constructor({ cause, message, action }) {
-    super(message || "Não foi possível encontrar este recurso no sistema.", {
+    super(message || "Usuário não autenticado.", {
       cause,
     });
-    this.name = "NotFoundError";
-    this.action =
-      action || "Verifique se os parâmetros enciados na consulta estão certos.";
-    this.statusCode = 404;
+    this.name = "UnauthorizedError";
+    this.action = action || "Faça novamente o login para continuar.";
+    this.statusCode = 401;
   }
 
   toJSON() {
@@ -125,7 +125,7 @@ export class MethodNotAllowedError extends Error {
     super("Método não permitido para este endpoint.");
     this.name = "MethodNotAllowedError";
     this.action =
-      "Verifique se o método HTTP enviado é valido para este endpoint.";
+      "Verifique se o método HTTP enviado é válido para este endpoint.";
     this.statusCode = 405;
   }
 
