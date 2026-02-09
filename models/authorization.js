@@ -12,10 +12,10 @@ const availableFeatures = [
   "create:session",
   "read:session",
 
-  // ACTIVATION TOKEN
+  // ACTIVATION_TOKEN
   "read:activation_token",
 
-  //MIGRATION
+  // MIGRATION
   "create:migration",
   "read:migration",
 
@@ -130,7 +130,7 @@ function filterOutput(user, feature, resource) {
 function validateUser(user) {
   if (!user || !user.features) {
     throw new InternalServerError({
-      cause: "É necessário informar um usuário.",
+      cause: "É necessário fornecer `user` no model `authorization`.",
     });
   }
 }
@@ -147,7 +147,8 @@ function validateFeature(feature) {
 function validateResource(resource) {
   if (!resource) {
     throw new InternalServerError({
-      cause: "É necessário fornecer um `resource` em `authorization`.",
+      cause:
+        "É necessário fornecer um `resource` em `authorization.filterOutput()`.",
     });
   }
 }
