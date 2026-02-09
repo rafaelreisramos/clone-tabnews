@@ -1,5 +1,5 @@
-import password from "./password.js";
-import user from "./user.js";
+import password from "models/password.js";
+import user from "models/user.js";
 import { NotFoundError, UnauthorizedError } from "infra/errors.js";
 
 async function getAuthenticatedUser(providedEmail, providedPassword) {
@@ -12,7 +12,7 @@ async function getAuthenticatedUser(providedEmail, providedPassword) {
     if (error instanceof UnauthorizedError) {
       throw new UnauthorizedError({
         message: "Dados de autenticação não conferem.",
-        action: "Verifique se os dados enviados estão corretos",
+        action: "Verifique se os dados enviados estão corretos.",
       });
     }
 
@@ -20,10 +20,10 @@ async function getAuthenticatedUser(providedEmail, providedPassword) {
   }
 
   async function findUserByEmail(providedEmail) {
-    try {
-      const storedUser = await user.findOneByEmail(providedEmail);
+    let storedUser;
 
-      return storedUser;
+    try {
+      storedUser = await user.findOneByEmail(providedEmail);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw new UnauthorizedError({
@@ -34,6 +34,8 @@ async function getAuthenticatedUser(providedEmail, providedPassword) {
 
       throw error;
     }
+
+    return storedUser;
   }
 
   async function validatePassword(providedPassword, storedPassword) {

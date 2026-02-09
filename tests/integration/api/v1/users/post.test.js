@@ -1,7 +1,7 @@
 import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 import user from "models/user.js";
-import password from "models/password";
+import password from "models/password.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -19,7 +19,7 @@ describe("POST /api/v1/users", () => {
         },
         body: JSON.stringify({
           username: "johndoe",
-          email: "john.doe@email.com",
+          email: "contato@curso.dev",
           password: "senha123",
         }),
       });
@@ -44,7 +44,7 @@ describe("POST /api/v1/users", () => {
         userInDatabase.password,
       );
       const incorrectPasswordMatch = await password.compare(
-        "SenhaIncorreta",
+        "SenhaErrada",
         userInDatabase.password,
       );
 
@@ -119,7 +119,7 @@ describe("POST /api/v1/users", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          cookie: `session_id=${user1SessionObject.token}`,
+          Cookie: `session_id=${user1SessionObject.token}`,
         },
         body: JSON.stringify({
           username: "usuariologado",
@@ -133,7 +133,7 @@ describe("POST /api/v1/users", () => {
       expect(user2ResponseBody).toEqual({
         name: "ForbiddenError",
         message: "Você não possui permissão para executar esta ação.",
-        action: 'Verifique se o usuário possui a feature "create:user".',
+        action: 'Verifique se o seu usuário possui a feature "create:user".',
         status_code: 403,
       });
     });

@@ -11,7 +11,7 @@ beforeAll(async () => {
 
 describe("PATCH /api/v1/activations/[token_id]", () => {
   describe("Anonymous user", () => {
-    test("With nonexistent 'token'", async () => {
+    test("With nonexistent `token`", async () => {
       const response = await fetch(
         "http://localhost:3000/api/v1/activations/a293e967-93d6-4bcc-bea2-11f1f496f686",
         {
@@ -30,7 +30,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       });
     });
 
-    test("With expired 'token'", async () => {
+    test("With expired `token`", async () => {
       jest.useFakeTimers({
         now: new Date(Date.now() - activation.EXPIRATION_IN_MILLISECONDS),
       });
@@ -58,7 +58,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       });
     });
 
-    test("With already used 'token'", async () => {
+    test("With already used `token`", async () => {
       const createdUser = await orchestrator.createUser();
       const activationToken = await activation.create(createdUser.id);
 
@@ -88,7 +88,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       });
     });
 
-    test("With valid 'token'", async () => {
+    test("With valid `token`", async () => {
       const createdUser = await orchestrator.createUser();
       const activationToken = await activation.create(createdUser.id);
 
@@ -116,7 +116,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       expect(Date.parse(responseBody.expires_at)).not.toBeNaN();
       expect(Date.parse(responseBody.created_at)).not.toBeNaN();
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
-      expect(responseBody.updated_at >= responseBody.created_at).toBe(true);
+      expect(responseBody.updated_at > responseBody.created_at).toBe(true);
 
       const expiresAt = new Date(responseBody.expires_at);
       const createdAt = new Date(responseBody.created_at);
@@ -134,7 +134,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       ]);
     });
 
-    test("With valid 'token' but already activated user", async () => {
+    test("With valid `token` but already activated user", async () => {
       const createdUser = await orchestrator.createUser();
       await orchestrator.activateUser(createdUser);
       const activationToken = await activation.create(createdUser.id);
@@ -171,7 +171,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         {
           method: "PATCH",
           headers: {
-            cookie: `session_id=${user1SessionObject.token}`,
+            Cookie: `session_id=${user1SessionObject.token}`,
           },
         },
       );
@@ -182,7 +182,7 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
         name: "ForbiddenError",
         message: "Você não possui permissão para executar esta ação.",
         action:
-          'Verifique se o usuário possui a feature "read:activation_token".',
+          'Verifique se o seu usuário possui a feature "read:activation_token".',
         status_code: 403,
       });
     });

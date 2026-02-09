@@ -20,7 +20,7 @@ describe("GET /api/v1/user", () => {
       expect(responseBody).toEqual({
         name: "ForbiddenError",
         message: "Você não possui permissão para executar esta ação.",
-        action: 'Verifique se o usuário possui a feature "read:session".',
+        action: 'Verifique se o seu usuário possui a feature "read:session".',
         status_code: 403,
       });
     });
@@ -31,14 +31,12 @@ describe("GET /api/v1/user", () => {
       const createdUser = await orchestrator.createUser({
         username: "UserWithValidSession",
       });
-      const activatedUser = await activation.activateUserByUserId(
-        createdUser.id,
-      );
+      const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(createdUser.id);
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
       expect(response.status).toBe(200);
@@ -51,7 +49,7 @@ describe("GET /api/v1/user", () => {
       const responseBody = await response.json();
       expect(responseBody).toEqual({
         id: createdUser.id,
-        username: createdUser.username,
+        username: "UserWithValidSession",
         email: createdUser.email,
         features: ["create:session", "read:session", "update:user"],
         created_at: createdUser.created_at.toISOString(),
@@ -92,16 +90,14 @@ describe("GET /api/v1/user", () => {
       const createdUser = await orchestrator.createUser({
         username: "UserWithHalfwayExpiredSession",
       });
-      const activatedUser = await activation.activateUserByUserId(
-        createdUser.id,
-      );
+      const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(createdUser.id);
 
       jest.useRealTimers();
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
 
@@ -154,7 +150,7 @@ describe("GET /api/v1/user", () => {
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${nonexistentToken}`,
+          Cookie: `session_id=${nonexistentToken}`,
         },
       });
       expect(response.status).toBe(401);
@@ -195,7 +191,7 @@ describe("GET /api/v1/user", () => {
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
       expect(response.status).toBe(401);

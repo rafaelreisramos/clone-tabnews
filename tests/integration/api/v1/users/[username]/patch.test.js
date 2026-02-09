@@ -30,7 +30,7 @@ describe("PATCH /api/v1/users/[username]", () => {
 
       const responseBody = await response.json();
       expect(responseBody).toEqual({
-        action: 'Verifique se o usuário possui a feature "update:user".',
+        action: 'Verifique se o seu usuário possui a feature "update:user".',
         message: "Você não possui permissão para executar esta ação.",
         name: "ForbiddenError",
         status_code: 403,
@@ -45,7 +45,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       const sessionObject = await orchestrator.createSession(activatedUser.id);
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/NonexistentUsername",
+        "http://localhost:3000/api/v1/users/UsuarioInexistente",
         {
           method: "PATCH",
           headers: {
@@ -105,11 +105,11 @@ describe("PATCH /api/v1/users/[username]", () => {
 
     test("With duplicated 'email'", async () => {
       await orchestrator.createUser({
-        email: "email1@email.com",
+        email: "email1@curso.dev",
       });
 
       const createdUser2 = await orchestrator.createUser({
-        email: "email2@email.com",
+        email: "email2@curso.dev",
       });
 
       const activatedUser2 = await orchestrator.activateUser(createdUser2);
@@ -126,7 +126,7 @@ describe("PATCH /api/v1/users/[username]", () => {
             Cookie: `session_id=${sessionObject2.token}`,
           },
           body: JSON.stringify({
-            email: "email1@email.com",
+            email: "email1@curso.dev",
           }),
         },
       );
@@ -142,9 +142,7 @@ describe("PATCH /api/v1/users/[username]", () => {
     });
 
     test("With unique 'username'", async () => {
-      const createdUser = await orchestrator.createUser({
-        username: "uniqueUser1",
-      });
+      const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(activatedUser.id);
 
@@ -218,9 +216,7 @@ describe("PATCH /api/v1/users/[username]", () => {
     });
 
     test("With unique 'email'", async () => {
-      const createdUser = await orchestrator.createUser({
-        email: "uniqueEmail1@email.com",
-      });
+      const createdUser = await orchestrator.createUser();
       const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(activatedUser.id);
 
@@ -233,7 +229,7 @@ describe("PATCH /api/v1/users/[username]", () => {
             Cookie: `session_id=${sessionObject.token}`,
           },
           body: JSON.stringify({
-            email: "uniqueEmail2@email.com",
+            email: "uniqueEmail2@curso.dev",
           }),
         },
       );
@@ -254,7 +250,9 @@ describe("PATCH /api/v1/users/[username]", () => {
     });
 
     test("With new 'password'", async () => {
-      const createdUser = await orchestrator.createUser();
+      const createdUser = await orchestrator.createUser({
+        password: "newPassword1",
+      });
       const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(activatedUser.id);
 
@@ -302,7 +300,7 @@ describe("PATCH /api/v1/users/[username]", () => {
   });
 
   describe("Privileged user", () => {
-    test("With `privilegedUser` targeting `defaultUser`", async () => {
+    test("With `update:user:others` targeting `defaultUser`", async () => {
       const privilegedUser = await orchestrator.createUser();
       const activatedPrivilegedUser =
         await orchestrator.activateUser(privilegedUser);

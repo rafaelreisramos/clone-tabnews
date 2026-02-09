@@ -1,4 +1,4 @@
-const retry = require("async-retry");
+import retry from "async-retry";
 import { faker } from "@faker-js/faker";
 import database from "infra/database.js";
 import migrator from "models/migrator.js";
@@ -27,12 +27,12 @@ async function waitForAllServices() {
   }
 
   async function waitForEmailServer() {
-    return retry(fetchStatusPage, {
+    return retry(fetchEmailPage, {
       retries: 100,
       maxTimeout: 1000,
     });
 
-    async function fetchStatusPage() {
+    async function fetchEmailPage() {
       const response = await fetch(emailHttpUrl);
       if (response.status !== 200) {
         throw new Error();
@@ -63,7 +63,7 @@ async function createSession(userId) {
 }
 
 async function deleteAllEmails() {
-  return await fetch(`${emailHttpUrl}/messages`, {
+  await fetch(`${emailHttpUrl}/messages`, {
     method: "DELETE",
   });
 }

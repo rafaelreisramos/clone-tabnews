@@ -1,3 +1,4 @@
+import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -28,15 +29,19 @@ describe("GET /api/v1/users/[username]", () => {
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
+
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
     test("With case mismatch", async () => {
       await orchestrator.createUser({
-        username: "MismatchCase",
+        username: "CaseDiferente",
       });
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/mismatchcase",
+        "http://localhost:3000/api/v1/users/casediferente",
       );
 
       expect(response.status).toBe(200);
@@ -45,16 +50,20 @@ describe("GET /api/v1/users/[username]", () => {
 
       expect(responseBody).toEqual({
         id: responseBody.id,
-        username: "MismatchCase",
+        username: "CaseDiferente",
         features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
+
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
     test("With nonexistent username", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/InexistentUsername",
+        "http://localhost:3000/api/v1/users/UsuarioInexistente",
       );
 
       expect(response.status).toBe(404);

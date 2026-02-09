@@ -5,11 +5,11 @@ import { UnauthorizedError } from "infra/errors.js";
 // 30 days * 24 hours/day * 60 mins/hour * 60 s/min * 1000 ms/s
 const EXPIRATION_IN_MILLISECONDS = 30 * 24 * 60 * 60 * 1000;
 
-async function findOneValidByToken(token) {
-  const sessionFound = await runSelectQuery(token);
+async function findOneValidByToken(sessionToken) {
+  const sessionFound = await runSelectQuery(sessionToken);
   return sessionFound;
 
-  async function runSelectQuery(token) {
+  async function runSelectQuery(sessionToken) {
     const results = await database.query({
       text: `
         SELECT
@@ -22,44 +22,11 @@ async function findOneValidByToken(token) {
         LIMIT
           1
       ;`,
-      values: [token],
+      values: [sessionToken],
     });
 
     if (results.rowCount === 0) {
       throw new UnauthorizedError({
-        name: "UnauthorizedError",
-        message: "Usuário não possui sessão ativa.",
-        action: "Verifique se este usuário está logado e tente novamente.",
-      });
-    }
-
-    return results.rows[0];
-  }
-}
-
-async function expireById(sessionId) {
-  const sessionFound = await runSelectQuery(sessionId);
-  return sessionFound;
-
-  async function runSelectQuery(sessionId) {
-    const results = await database.query({
-      text: `
-        UPDATE
-          sessions
-        SET
-          expires_at = expires_at - interval '1 year',
-          updated_at = NOW()
-        WHERE
-          id = $1
-        RETURNING
-          *
-      ;`,
-      values: [sessionId],
-    });
-
-    if (results.rowCount === 0) {
-      throw new UnauthorizedError({
-        name: "UnauthorizedError",
         message: "Usuário não possui sessão ativa.",
         action: "Verifique se este usuário está logado e tente novamente.",
       });
@@ -95,9 +62,9 @@ async function create(userId) {
 
 async function renew(sessionId) {
   const expiresAt = new Date(Date.now() + EXPIRATION_IN_MILLISECONDS);
-  const renewedSession = await runUpdateQuery(sessionId, expiresAt);
 
-  return renewedSession;
+  const renewedSessionObject = await runUpdateQuery(sessionId, expiresAt);
+  return renewedSessionObject;
 
   async function runUpdateQuery(sessionId, expiresAt) {
     const results = await database.query({
@@ -110,9 +77,33 @@ async function renew(sessionId) {
         WHERE
           id = $1
         RETURNING
-          *      
+          *
       ;`,
       values: [sessionId, expiresAt],
+    });
+
+    return results.rows[0];
+  }
+}
+
+async function expireById(sessionId) {
+  const expiredSessionObject = await runUpdateQuery(sessionId);
+  return expiredSessionObject;
+
+  async function runUpdateQuery(sessionId) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          sessions
+        SET
+          expires_at = expires_at - interval '1 year',
+          updated_at = NOW()
+        WHERE
+          id = $1
+        RETURNING
+          *
+      ;`,
+      values: [sessionId],
     });
 
     return results.rows[0];
