@@ -26,7 +26,7 @@ function onErrorHandler(error, request, response) {
   }
 
   if (error instanceof UnauthorizedError) {
-    controller.clearSessionCookie(response);
+    clearSessionCookie(response);
     return response.status(error.statusCode).json(error);
   }
 
@@ -64,7 +64,7 @@ async function injectAnonymousOrUser(request, response, next) {
     return next();
   }
 
-  injectAnounymousUser(request);
+  injectAnonymousUser(request);
   return next();
 }
 
@@ -79,7 +79,7 @@ async function injectAuthenticatedUser(request) {
   };
 }
 
-function injectAnounymousUser(request) {
+function injectAnonymousUser(request) {
   const anonymousUserObject = {
     features: ["read:activation_token", "create:session", "create:user"],
   };
@@ -100,7 +100,7 @@ function canRequest(feature) {
 
     throw new ForbiddenError({
       message: "Você não possui permissão para executar esta ação.",
-      action: `Verifique se o usuário possui a feature "${feature}".`,
+      action: `Verifique se o seu usuário possui a feature "${feature}".`,
     });
   };
 }
