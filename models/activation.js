@@ -65,8 +65,8 @@ async function findOneValidById(tokenId) {
 }
 
 async function markTokenAsUsed(activationTokenId) {
-  const usedToken = await runUpdateQuery(activationTokenId);
-  return usedToken;
+  const usedActivationToken = await runUpdateQuery(activationTokenId);
+  return usedActivationToken;
 
   async function runUpdateQuery(activationTokenId) {
     const results = await database.query({
@@ -98,7 +98,7 @@ async function activateUserByUserId(userId) {
     });
   }
 
-  const activatedUser = user.setFeatures(userId, [
+  const activatedUser = await user.setFeatures(userId, [
     "create:session",
     "read:session",
     "update:user",
