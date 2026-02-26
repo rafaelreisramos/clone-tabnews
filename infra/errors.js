@@ -26,12 +26,14 @@ export class ServiceError extends Error {
     cause,
     message = "Serviço indisponível no momento.",
     action = "Verifique se o serviço está disponível.",
+    context = {},
     statusCode = 503,
   }) {
     super(message, { cause });
     this.name = "ServiceError";
     this.action = action;
     this.statusCode = statusCode;
+    this.context = context;
   }
 
   toJSON() {
@@ -39,6 +41,7 @@ export class ServiceError extends Error {
       name: this.name,
       message: this.message,
       action: this.action,
+      context: this.context,
       status_code: this.statusCode,
     };
   }
