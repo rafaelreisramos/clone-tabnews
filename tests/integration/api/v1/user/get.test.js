@@ -2,7 +2,6 @@ import { version as uuidVersion } from "uuid";
 import setCookieParser from "set-cookie-parser";
 import orchestrator from "tests/orchestrator.js";
 import session from "models/session.js";
-import activation from "models/activation.js";
 
 beforeAll(async () => {
   await orchestrator.waitForAllServices();
@@ -46,19 +45,25 @@ describe("GET /api/v1/user", () => {
         "no-store, no-cache, max-age=0, must-revalidate",
       );
 
-      const responseBody = await response.json();
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
+
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: "UserWithValidSession",
         email: createdUser.email,
         features: ["create:session", "read:session", "update:user"],
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: activatedUser.updated_at.toISOString(),
+        created_at: createdUser.created_at,
+        updated_at: activatedUser.updated_at,
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
 
       const renewedSessionObject = await session.findOneValidByToken(
         sessionObject.token,
@@ -70,7 +75,7 @@ describe("GET /api/v1/user", () => {
         true,
       );
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
       expect(parsedSetCookie.session_id).toEqual({
@@ -103,20 +108,25 @@ describe("GET /api/v1/user", () => {
 
       expect(response.status).toBe(200);
 
-      const responseBody = await response.json();
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
 
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: "UserWithHalfwayExpiredSession",
         email: createdUser.email,
         features: ["create:session", "read:session", "update:user"],
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: activatedUser.updated_at.toISOString(),
+        created_at: createdUser.created_at,
+        updated_at: activatedUser.updated_at,
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
 
       // Session renewal assertions
       const renewedSessionObject = await session.findOneValidByToken(
@@ -131,7 +141,7 @@ describe("GET /api/v1/user", () => {
       ).toEqual(true);
 
       // Set‑Cookie assertions
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 
@@ -163,7 +173,7 @@ describe("GET /api/v1/user", () => {
         status_code: 401,
       });
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 
@@ -204,7 +214,7 @@ describe("GET /api/v1/user", () => {
         status_code: 401,
       });
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 

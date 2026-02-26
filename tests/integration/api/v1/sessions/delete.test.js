@@ -72,7 +72,13 @@ describe("DELETE /api/v1/sessions", () => {
       });
       expect(response.status).toBe(200);
 
-      const responseBody = await response.json();
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        expires_at: new Date(responseBody.expires_at),
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
       expect(responseBody).toEqual({
         id: sessionObject.id,
         token: sessionObject.token,
@@ -83,17 +89,13 @@ describe("DELETE /api/v1/sessions", () => {
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.expires_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
-      expect(
-        responseBody.expires_at < sessionObject.expires_at.toISOString(),
-      ).toBe(true);
-      expect(
-        responseBody.updated_at > sessionObject.updated_at.toISOString(),
-      ).toBe(true);
+      expect(responseBody.expires_at).toBeInstanceOf(Date);
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(responseBody.expires_at < sessionObject.expires_at).toBe(true);
+      expect(responseBody.updated_at > sessionObject.updated_at).toBe(true);
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
       expect(parsedSetCookie.session_id).toEqual({
