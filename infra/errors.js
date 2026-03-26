@@ -1,11 +1,14 @@
 export class InternalServerError extends Error {
-  constructor({ cause, statusCode }) {
-    super("Um erro interno não esperado aconteceu.", {
-      cause,
-    });
+  constructor({
+    cause,
+    message = "Um erro interno não esperado aconteceu.",
+    action = "Entre em contato com o suporte.",
+    statusCode = 500,
+  }) {
+    super(message, { cause });
     this.name = "InternalServerError";
-    this.action = "Entre em contato com o suporte.";
-    this.statusCode = statusCode || 500;
+    this.action = action;
+    this.statusCode = statusCode;
   }
 
   toJSON() {
@@ -19,13 +22,18 @@ export class InternalServerError extends Error {
 }
 
 export class ServiceError extends Error {
-  constructor({ cause, message }) {
-    super(message || "Serviço indisponível no momento.", {
-      cause,
-    });
+  constructor({
+    cause,
+    message = "Serviço indisponível no momento.",
+    action = "Verifique se o serviço está disponível.",
+    context = {},
+    statusCode = 503,
+  }) {
+    super(message, { cause });
     this.name = "ServiceError";
-    this.action = "Verifique se o serviço está disponível.";
-    this.statusCode = 503;
+    this.action = action;
+    this.statusCode = statusCode;
+    this.context = context;
   }
 
   toJSON() {
@@ -33,18 +41,21 @@ export class ServiceError extends Error {
       name: this.name,
       message: this.message,
       action: this.action,
+      context: this.context,
       status_code: this.statusCode,
     };
   }
 }
 
 export class ValidationError extends Error {
-  constructor({ cause, message, action }) {
-    super(message || "Um erro de validação ocorreu.", {
-      cause,
-    });
+  constructor({
+    cause,
+    message = "Um erro de validação ocorreu.",
+    action = "Ajuste os dados enviados e tente novamente.",
+  }) {
+    super(message, { cause });
     this.name = "ValidationError";
-    this.action = action || "Ajuste os dados enviados e tente novamente.";
+    this.action = action;
     this.statusCode = 400;
   }
 
@@ -58,14 +69,16 @@ export class ValidationError extends Error {
   }
 }
 
-export class UnauthorizedError extends Error {
-  constructor({ cause, message, action }) {
-    super(message || "Usuário não autenticado.", {
-      cause,
-    });
-    this.name = "UnauthorizedError";
-    this.action = action || "Faça novamente o login para continuar.";
-    this.statusCode = 401;
+export class NotFoundError extends Error {
+  constructor({
+    cause,
+    message = "Não foi possível encontrar este recurso no sistema.",
+    action = "Verifique se os parâmetros enviados na consulta estão certos.",
+  }) {
+    super(message, { cause });
+    this.name = "NotFoundError";
+    this.action = action;
+    this.statusCode = 404;
   }
 
   toJSON() {
@@ -78,15 +91,38 @@ export class UnauthorizedError extends Error {
   }
 }
 
-export class NotFoundError extends Error {
-  constructor({ cause, message, action }) {
-    super(message || "Não foi possível encontrar este recurso no sistema.", {
-      cause,
-    });
-    this.name = "NotFoundError";
-    this.action =
-      action || "Verifique se os parâmetros enciados na consulta estão certos.";
-    this.statusCode = 404;
+export class ForbiddenError extends Error {
+  constructor({
+    cause,
+    message = "Acesso negado.",
+    action = "Verifique as features necessárias antes de continuar.",
+  }) {
+    super(message, { cause });
+    this.name = "ForbiddenError";
+    this.action = action;
+    this.statusCode = 403;
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      message: this.message,
+      action: this.action,
+      status_code: this.statusCode,
+    };
+  }
+}
+
+export class UnauthorizedError extends Error {
+  constructor({
+    cause,
+    message = "Usuário não autenticado.",
+    action = "Faça novamente o login para continuar.",
+  }) {
+    super(message, { cause });
+    this.name = "UnauthorizedError";
+    this.action = action;
+    this.statusCode = 401;
   }
 
   toJSON() {
@@ -104,7 +140,7 @@ export class MethodNotAllowedError extends Error {
     super("Método não permitido para este endpoint.");
     this.name = "MethodNotAllowedError";
     this.action =
-      "Verifique se o método HTTP enviado é valido para este endpoint.";
+      "Verifique se o método HTTP enviado é válido para este endpoint.";
     this.statusCode = 405;
   }
 

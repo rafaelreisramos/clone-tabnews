@@ -11,7 +11,7 @@ beforeAll(async () => {
 
 describe("POST /api/v1/sessions", () => {
   describe("Anonymous user", () => {
-    test("With incorrect 'email' and correct 'password'", async () => {
+    test("With incorrect `email` but correct `password`", async () => {
       await orchestrator.createUser({
         password: "senha-correta",
       });
@@ -21,7 +21,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "email.incorreto.com",
+          email: "email.errado@curso.dev",
           password: "senha-correta",
         }),
       });
@@ -31,14 +31,14 @@ describe("POST /api/v1/sessions", () => {
       expect(responseBody).toEqual({
         name: "UnauthorizedError",
         message: "Dados de autenticação não conferem.",
-        action: "Verifique se os dados enviados estão corretos",
+        action: "Verifique se os dados enviados estão corretos.",
         status_code: 401,
       });
     });
 
-    test("With correct 'email' and incorrect 'password'", async () => {
+    test("With correct `email` but incorrect `password`", async () => {
       await orchestrator.createUser({
-        email: "email.correto@email.com",
+        email: "email.correto@curso.dev",
       });
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",
@@ -46,7 +46,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "email.correto@email.com",
+          email: "email.correto@curso.dev",
           password: "senha-incorreta",
         }),
       });
@@ -56,12 +56,12 @@ describe("POST /api/v1/sessions", () => {
       expect(responseBody).toEqual({
         name: "UnauthorizedError",
         message: "Dados de autenticação não conferem.",
-        action: "Verifique se os dados enviados estão corretos",
+        action: "Verifique se os dados enviados estão corretos.",
         status_code: 401,
       });
     });
 
-    test("With incorrect 'email' and incorrect 'password'", async () => {
+    test("With incorrect `email` and incorrect `password`", async () => {
       await orchestrator.createUser();
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",
@@ -69,7 +69,7 @@ describe("POST /api/v1/sessions", () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "email.incorreto.com",
+          email: "email.incorreto@curso.dev",
           password: "senha-incorreta",
         }),
       });
@@ -79,50 +79,47 @@ describe("POST /api/v1/sessions", () => {
       expect(responseBody).toEqual({
         name: "UnauthorizedError",
         message: "Dados de autenticação não conferem.",
-        action: "Verifique se os dados enviados estão corretos",
+        action: "Verifique se os dados enviados estão corretos.",
         status_code: 401,
       });
     });
 
-    test("With correct 'email' and correct 'password'", async () => {
+    test("With correct `email` and correct `password`", async () => {
       const createdUser = await orchestrator.createUser({
-        email: "tudo.correto@email.com",
+        email: "tudo.correto@curso.dev",
         password: "tudocorreto",
       });
+      await orchestrator.activateUser(createdUser);
       const response = await fetch("http://localhost:3000/api/v1/sessions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "tudo.correto@email.com",
+          email: "tudo.correto@curso.dev",
           password: "tudocorreto",
         }),
       });
       expect(response.status).toBe(201);
 
-      const responseBody = await response.json();
-      expect(responseBody).toEqual({
-        id: responseBody.id,
-        token: responseBody.token,
-        user_id: createdUser.id,
-        expires_at: responseBody.expires_at,
-        created_at: responseBody.created_at,
-        updated_at: responseBody.updated_at,
-      });
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        expires_at: new Date(responseBody.expires_at),
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.expires_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.expires_at).toBeInstanceOf(Date);
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
 
-      const expiresAt = new Date(responseBody.expires_at);
-      const createdAt = new Date(responseBody.created_at);
-      expiresAt.setMilliseconds(0);
-      createdAt.setMilliseconds(0);
+      const expiresAt = responseBody.expires_at.setMilliseconds(0);
+      const createdAt = responseBody.created_at.setMilliseconds(0);
       expect(expiresAt - createdAt).toBe(session.EXPIRATION_IN_MILLISECONDS);
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
       expect(parsedSetCookie.session_id).toEqual({

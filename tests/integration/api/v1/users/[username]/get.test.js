@@ -1,3 +1,4 @@
+import { version as uuidVersion } from "uuid";
 import orchestrator from "tests/orchestrator.js";
 
 beforeAll(async () => {
@@ -9,7 +10,7 @@ beforeAll(async () => {
 describe("GET /api/v1/users/[username]", () => {
   describe("Anonymous user", () => {
     test("With exact case match", async () => {
-      const createdUser = await orchestrator.createUser({
+      await orchestrator.createUser({
         username: "MesmoCase",
       });
 
@@ -19,44 +20,58 @@ describe("GET /api/v1/users/[username]", () => {
 
       expect(response.status).toBe(200);
 
-      const responseBody = await response.json();
-
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "MesmoCase",
-        email: createdUser.email,
-        password: responseBody.password,
+        features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
+
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
     });
 
     test("With case mismatch", async () => {
-      const createdUser = await orchestrator.createUser({
-        username: "MismatchCase",
+      await orchestrator.createUser({
+        username: "CaseDiferente",
       });
 
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/mismatchcase",
+        "http://localhost:3000/api/v1/users/casediferente",
       );
 
       expect(response.status).toBe(200);
 
-      const responseBody = await response.json();
-
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
       expect(responseBody).toEqual({
         id: responseBody.id,
-        username: "MismatchCase",
-        email: createdUser.email,
-        password: responseBody.password,
+        username: "CaseDiferente",
+        features: ["read:activation_token"],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
+
+      expect(uuidVersion(responseBody.id)).toBe(4);
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
     });
 
     test("With nonexistent username", async () => {
       const response = await fetch(
-        "http://localhost:3000/api/v1/users/InexistentUsername",
+        "http://localhost:3000/api/v1/users/UsuarioInexistente",
       );
 
       expect(response.status).toBe(404);

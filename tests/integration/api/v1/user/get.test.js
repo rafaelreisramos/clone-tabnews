@@ -10,16 +10,32 @@ beforeAll(async () => {
 });
 
 describe("GET /api/v1/user", () => {
+  describe("Anonymous user", () => {
+    test("Retrieving the endpoint", async () => {
+      const response = await fetch("http://localhost:3000/api/v1/user");
+      expect(response.status).toBe(403);
+
+      const responseBody = await response.json();
+      expect(responseBody).toEqual({
+        name: "ForbiddenError",
+        message: "Você não possui permissão para executar esta ação.",
+        action: 'Verifique se o seu usuário possui a feature "read:session".',
+        status_code: 403,
+      });
+    });
+  });
+
   describe("Default user", () => {
     test("With valid session", async () => {
       const createdUser = await orchestrator.createUser({
         username: "UserWithValidSession",
       });
+      const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(createdUser.id);
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
       expect(response.status).toBe(200);
@@ -29,19 +45,25 @@ describe("GET /api/v1/user", () => {
         "no-store, no-cache, max-age=0, must-revalidate",
       );
 
-      const responseBody = await response.json();
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
+
       expect(responseBody).toEqual({
         id: createdUser.id,
-        username: createdUser.username,
+        username: "UserWithValidSession",
         email: createdUser.email,
-        password: createdUser.password,
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        features: ["create:session", "read:session", "update:user"],
+        created_at: createdUser.created_at,
+        updated_at: activatedUser.updated_at,
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
 
       const renewedSessionObject = await session.findOneValidByToken(
         sessionObject.token,
@@ -53,7 +75,7 @@ describe("GET /api/v1/user", () => {
         true,
       );
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
       expect(parsedSetCookie.session_id).toEqual({
@@ -73,33 +95,38 @@ describe("GET /api/v1/user", () => {
       const createdUser = await orchestrator.createUser({
         username: "UserWithHalfwayExpiredSession",
       });
-
+      const activatedUser = await orchestrator.activateUser(createdUser);
       const sessionObject = await orchestrator.createSession(createdUser.id);
 
       jest.useRealTimers();
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
 
       expect(response.status).toBe(200);
 
-      const responseBody = await response.json();
+      let responseBody = await response.json();
+      responseBody = {
+        ...responseBody,
+        created_at: new Date(responseBody.created_at),
+        updated_at: new Date(responseBody.updated_at),
+      };
 
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: "UserWithHalfwayExpiredSession",
         email: createdUser.email,
-        password: createdUser.password,
-        created_at: createdUser.created_at.toISOString(),
-        updated_at: createdUser.updated_at.toISOString(),
+        features: ["create:session", "read:session", "update:user"],
+        created_at: createdUser.created_at,
+        updated_at: activatedUser.updated_at,
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
-      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+      expect(responseBody.created_at).toBeInstanceOf(Date);
+      expect(responseBody.updated_at).toBeInstanceOf(Date);
 
       // Session renewal assertions
       const renewedSessionObject = await session.findOneValidByToken(
@@ -114,7 +141,7 @@ describe("GET /api/v1/user", () => {
       ).toEqual(true);
 
       // Set‑Cookie assertions
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 
@@ -133,7 +160,7 @@ describe("GET /api/v1/user", () => {
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${nonexistentToken}`,
+          Cookie: `session_id=${nonexistentToken}`,
         },
       });
       expect(response.status).toBe(401);
@@ -146,7 +173,7 @@ describe("GET /api/v1/user", () => {
         status_code: 401,
       });
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 
@@ -174,7 +201,7 @@ describe("GET /api/v1/user", () => {
 
       const response = await fetch("http://localhost:3000/api/v1/user", {
         headers: {
-          cookie: `session_id=${sessionObject.token}`,
+          Cookie: `session_id=${sessionObject.token}`,
         },
       });
       expect(response.status).toBe(401);
@@ -187,7 +214,7 @@ describe("GET /api/v1/user", () => {
         status_code: 401,
       });
 
-      const parsedSetCookie = setCookieParser(response, {
+      const parsedSetCookie = setCookieParser(response.headers.getSetCookie(), {
         map: true,
       });
 

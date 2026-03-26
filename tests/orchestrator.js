@@ -1,9 +1,10 @@
-const retry = require("async-retry");
+import retry from "async-retry";
 import { faker } from "@faker-js/faker";
 import database from "infra/database.js";
 import migrator from "models/migrator.js";
 import user from "models/user.js";
 import session from "models/session.js";
+import activation from "models/activation.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -26,12 +27,12 @@ async function waitForAllServices() {
   }
 
   async function waitForEmailServer() {
-    return retry(fetchStatusPage, {
+    return retry(fetchEmailPage, {
       retries: 100,
       maxTimeout: 1000,
     });
 
-    async function fetchStatusPage() {
+    async function fetchEmailPage() {
       const response = await fetch(emailHttpUrl);
       if (response.status !== 200) {
         throw new Error();
@@ -62,7 +63,7 @@ async function createSession(userId) {
 }
 
 async function deleteAllEmails() {
-  return await fetch(`${emailHttpUrl}/messages`, {
+  await fetch(`${emailHttpUrl}/messages`, {
     method: "DELETE",
   });
 }
@@ -70,8 +71,11 @@ async function deleteAllEmails() {
 async function getLastEmail() {
   const emailListResponse = await fetch(`${emailHttpUrl}/messages`);
   const emailListBody = await emailListResponse.json();
-
   const lastEmailItem = emailListBody.pop();
+
+  if (!lastEmailItem) {
+    return null;
+  }
 
   const emailTextResponse = await fetch(
     `${emailHttpUrl}/messages/${lastEmailItem.id}.plain`,
@@ -82,6 +86,20 @@ async function getLastEmail() {
   return lastEmailItem;
 }
 
+function extractUUID(text) {
+  const match = text.match(/[0-9a-fA-F-]{36}/);
+  return match ? match[0] : null;
+}
+
+async function activateUser(inactiveUser) {
+  return await activation.activateUserByUserId(inactiveUser.id);
+}
+
+async function addFeaturesToUser(userObject, features) {
+  const updatedUser = await user.addFeatures(userObject.id, features);
+  return updatedUser;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -90,6 +108,9 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
+  activateUser,
+  addFeaturesToUser,
 };
 
 export default orchestrator;
