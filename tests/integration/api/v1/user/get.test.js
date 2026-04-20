@@ -47,24 +47,18 @@ describe("GET /api/v1/user", () => {
       );
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
-
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: "UserWithValidSession",
         email: createdUser.email,
         features: ["create:session", "read:session", "update:user"],
-        created_at: createdUser.created_at,
-        updated_at: activatedUser.updated_at,
+        created_at: createdUser.created_at.toISOString(),
+        updated_at: activatedUser.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
 
       const renewedSessionObject = await session.findOneValidByToken(
         sessionObject.token,
@@ -111,24 +105,18 @@ describe("GET /api/v1/user", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
-
       expect(responseBody).toEqual({
         id: createdUser.id,
         username: "UserWithHalfwayExpiredSession",
         email: createdUser.email,
         features: ["create:session", "read:session", "update:user"],
-        created_at: createdUser.created_at,
-        updated_at: activatedUser.updated_at,
+        created_at: createdUser.created_at.toISOString(),
+        updated_at: activatedUser.updated_at.toISOString(),
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
 
       // Session renewal assertions
       const renewedSessionObject = await session.findOneValidByToken(

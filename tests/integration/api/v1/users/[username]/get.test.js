@@ -22,11 +22,6 @@ describe("GET /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "MesmoCase",
@@ -36,8 +31,8 @@ describe("GET /api/v1/users/[username]", () => {
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
     test("With case mismatch", async () => {
@@ -52,11 +47,6 @@ describe("GET /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "CaseDiferente",
@@ -66,8 +56,8 @@ describe("GET /api/v1/users/[username]", () => {
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
     });
 
     test("With nonexistent username", async () => {

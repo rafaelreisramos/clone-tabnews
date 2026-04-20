@@ -159,11 +159,6 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "uniqueUser2",
@@ -172,8 +167,8 @@ describe("PATCH /api/v1/users/[username]", () => {
         updated_at: responseBody.updated_at,
       });
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
     });
 
@@ -235,11 +230,6 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
@@ -248,8 +238,8 @@ describe("PATCH /api/v1/users/[username]", () => {
         updated_at: responseBody.updated_at,
       });
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
 
       const userInDatabase = await user.findOneByUsername(createdUser.username);
@@ -279,11 +269,6 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
@@ -292,8 +277,8 @@ describe("PATCH /api/v1/users/[username]", () => {
         updated_at: responseBody.updated_at,
       });
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
 
       const userInDatabase = await user.findOneByUsername(createdUser.username);
@@ -343,11 +328,6 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: defaultUser.id,
         username: "AlteradoPorPrivilegiado",
@@ -356,8 +336,8 @@ describe("PATCH /api/v1/users/[username]", () => {
         updated_at: responseBody.updated_at,
       });
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
     });
   });

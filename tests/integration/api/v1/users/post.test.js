@@ -27,11 +27,6 @@ describe("POST /api/v1/users", () => {
       expect(response.status).toBe(201);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "johndoe",
@@ -40,8 +35,8 @@ describe("POST /api/v1/users", () => {
         updated_at: responseBody.updated_at,
       });
       expect(uuidVersion(responseBody.id)).toBe(4);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
 
       const userInDatabase = await user.findOneByUsername("johndoe");
       const correctPasswordMatch = await password.compare(

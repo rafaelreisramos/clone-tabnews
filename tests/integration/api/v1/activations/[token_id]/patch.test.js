@@ -102,32 +102,27 @@ describe("PATCH /api/v1/activations/[token_id]", () => {
       expect(response.status).toBe(200);
 
       let responseBody = await response.json();
-      responseBody = {
-        ...responseBody,
-        used_at: responseBody.used_at ? new Date(responseBody.used_at) : null,
-        expires_at: new Date(responseBody.expires_at),
-        created_at: new Date(responseBody.created_at),
-        updated_at: new Date(responseBody.updated_at),
-      };
       expect(responseBody).toEqual({
         id: activationToken.id,
         used_at: responseBody.used_at,
         user_id: activationToken.user_id,
-        expires_at: activationToken.expires_at,
-        created_at: activationToken.created_at,
+        expires_at: activationToken.expires_at.toISOString(),
+        created_at: activationToken.created_at.toISOString(),
         updated_at: responseBody.updated_at,
       });
 
       expect(uuidVersion(responseBody.id)).toBe(4);
       expect(uuidVersion(responseBody.user_id)).toBe(4);
 
-      expect(responseBody.expires_at).toBeInstanceOf(Date);
-      expect(responseBody.created_at).toBeInstanceOf(Date);
-      expect(responseBody.updated_at).toBeInstanceOf(Date);
+      expect(Date.parse(responseBody.expires_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
       expect(responseBody.updated_at > responseBody.created_at).toBe(true);
 
-      const expiresAt = responseBody.expires_at.setMilliseconds(0);
-      const createdAt = responseBody.created_at.setMilliseconds(0);
+      const expiresAt = new Date(responseBody.expires_at);
+      const createdAt = new Date(responseBody.created_at);
+      expiresAt.setMilliseconds(0);
+      createdAt.setMilliseconds(0);
       expect(expiresAt - createdAt).toBe(activation.EXPIRATION_IN_MILLISECONDS);
 
       const activatedUser = await user.findOneById(responseBody.user_id);
